@@ -9,7 +9,7 @@ const spwa = {
         style: '',
         flavor1: { id: 0, name: '', img: '' },
         flavor2: { id: 0, name: '', img: '' },
-        bebida: { name: '', price: 0 }, // <-- NUEVO ESTADO PARA LA BEBIDA
+        bebida: { name: '', price: 0 },
         border: { name: 'Sin Borde Adicional', price: 0 }
     },
     
@@ -21,7 +21,7 @@ const spwa = {
             'step-1': document.getElementById('step-1'),
             'step-2': document.getElementById('step-2'),
             'step-catalog': document.getElementById('step-catalog'),
-            'step-bebidas': document.getElementById('step-bebidas'), // <-- REGISTRO DEL NUEVO PANEL
+            'step-bebidas': document.getElementById('step-bebidas'),
             'step-final': document.getElementById('step-final')
         },
         panelCatalogoTitle: document.getElementById('flavor-progress-title'),
@@ -65,7 +65,6 @@ const spwa = {
             });
         });
 
-        // NUEVO: Escuchar clics en el paso de bebidas
         const bebidaCards = this.elements.panels['step-bebidas'].querySelectorAll('.large-card');
         bebidaCards.forEach(card => {
             card.addEventListener('click', () => {
@@ -73,7 +72,7 @@ const spwa = {
                     name: card.dataset.bebida,
                     price: parseInt(card.dataset.price)
                 };
-                this.advanceTo('step-final'); // Después de la bebida, va al borde final
+                this.advanceTo('step-final');
             });
         });
 
@@ -135,7 +134,7 @@ const spwa = {
         let progress = 0;
         if (stepId === 'step-2') progress = 20;
         if (stepId === 'step-catalog') progress = this.currentFlavorContext === 'Mitad 2' ? 60 : 40;
-        if (stepId === 'step-bebidas') progress = 80; // <-- NUEVO PROGRESO
+        if (stepId === 'step-bebidas') progress = 80;
         if (stepId === 'step-final') progress = 100;
         
         this.elements.progressBarFill.style.width = `${progress}%`;
@@ -169,7 +168,7 @@ const spwa = {
                     <img src="${prod.img}" alt="${prod.nombre}" loading="lazy"></div>               
                     <h3>${prod.nombre}</h3>
                     <p class="ingredientes"><strong>Ingredientes:</strong> ${prod.ingredientes}</p>
-                    <button id="btn-flavor-${prod.id}" ${disabledAttr}>${btnText}</button>
+                    <button type="button" id="btn-flavor-${prod.id}" ${disabledAttr}>${btnText}</button>
                 </article>
             `;
         }).join('');
@@ -188,7 +187,6 @@ const spwa = {
             const btn = document.getElementById(`btn-flavor-${prod.id}`);
             if (!btn) return;
 
-            // Mantener deshabilitado el botón si es Salami
             if (prod.nombre.toLowerCase() === 'salami') {
                 btn.textContent = "Agotada";
                 btn.disabled = true;
@@ -219,11 +217,11 @@ const spwa = {
                 this.advanceTo('step-catalog'); 
             } else {
                 this.choices.flavor2 = { id: flavorId, name: flavorName, img: flavorImg };
-                this.advanceTo('step-bebidas'); // <-- CAMBIO: Ahora va a bebidas
+                this.advanceTo('step-bebidas');
             }
         } else {
             this.choices.flavor1 = { id: flavorId, name: flavorName, img: flavorImg };
-            this.advanceTo('step-bebidas'); // <-- CAMBIO: Ahora va a bebidas
+            this.advanceTo('step-bebidas');
         }
     },
 
@@ -249,9 +247,13 @@ const spwa = {
         const borderPrice = preciosBordesData[this.choices.size.name] || 8000; 
         const formattedPrice = `+${formatoMonedaColombiaUnified.format(borderPrice)}`;
         
-        document.getElementById('price-borde-queso-spwa').textContent = formattedPrice;
-        document.getElementById('price-borde-bocadillo-spwa').textContent = formattedPrice;
-        document.getElementById('price-borde-arequipe-spwa').textContent = formattedPrice;
+        const elQueso = document.getElementById('price-borde-queso-spwa');
+        const elBocadillo = document.getElementById('price-borde-bocadillo-spwa');
+        const elArequipe = document.getElementById('price-borde-arequipe-spwa');
+
+        if (elQueso) elQueso.textContent = formattedPrice;
+        if (elBocadillo) elBocadillo.textContent = formattedPrice;
+        if (elArequipe) elArequipe.textContent = formattedPrice;
         
         const borderRadios = document.querySelectorAll('input[name="borde-final-spwa"]');
         borderRadios.forEach(radio => {
@@ -272,7 +274,6 @@ const spwa = {
         
         this.choices.border = borderChoice;
         
-        // 1. Agregar la pizza al carrito
         let finalPizzaName = this.choices.style === 'Mitad y Mitad / Combinada' 
             ? `Pizza Combinada: [ M1: ${this.choices.flavor1.name} / M2: ${this.choices.flavor2.name} ]`
             : `Pizza: [ Sabor: ${this.choices.flavor1.name} ]`;
@@ -289,14 +290,13 @@ const spwa = {
         
         spwaAddToCartUnified(pizzaItem);
 
-        // 2. NUEVO: Agregar la bebida como un ítem independiente en el carrito si se seleccionó una
-        if (this.choices.bebida.price > 0) {
+        if (this.choices.bebida && this.choices.bebida.price > 0) {
             const bebidaItem = {
                 key: `bebida-${this.choices.bebida.name.replace(/\s+/g, '-')}`,
                 nombre: `Bebida: ${this.choices.bebida.name}`,
                 tamano: '1.5 Litros',
                 portions: '-',
-                borde: '', // Las bebidas no tienen borde
+                borde: '',
                 precio: this.choices.bebida.price,
                 cantidad: 1
             };
@@ -312,7 +312,7 @@ const spwa = {
         this.history = ['step-1'];
         this.currentFlavorContext = ''; 
         this.currentStyleChoice = ''; 
-        this.choices.bebida = { name: '', price: 0 }; // <-- Resetear bebida
+        this.choices.bebida = { name: '', price: 0 };
         
         const borderRadiosSPWA = document.querySelectorAll('input[name="borde-final-spwa"]');
         borderRadiosSPWA.forEach(radio => radio.checked = radio.value === 'Sin Borde Adicional');
@@ -327,12 +327,16 @@ spwa.init();
    LÓGICA DEL CARRITO UNIFICADO Y WHATSAPP
    ========================================= */
 let carrito = [];
-let costoDomicilio = 0; // Variable global para el costo del domicilio
+let costoDomicilio = 0;
 const formatoMonedaColombiaUnified = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 });
 
 window.spwaAddToCartUnified = (itemToAdd) => {
     const itemEnCarrito = carrito.find(item => item.key === itemToAdd.key);
-    if (itemEnCarrito) { itemEnCarrito.cantidad++; } else { carrito.push(itemToAdd); }
+    if (itemEnCarrito) { 
+        itemEnCarrito.cantidad++; 
+    } else { 
+        carrito.push(itemToAdd); 
+    }
     actualizarCarritoUnifiedUI();
     abrirCarrito();
 };
@@ -341,7 +345,9 @@ window.cambiarCantidadUnified = (key, delta) => {
     const item = carrito.find(i => i.key === key);
     if (!item) return;
     item.cantidad += delta;
-    if (item.cantidad <= 0) carrito = carrito.filter(i => i.key !== key);
+    if (item.cantidad <= 0) {
+        carrito = carrito.filter(i => i.key !== key);
+    }
     actualizarCarritoUnifiedUI();
 };
 
@@ -370,9 +376,9 @@ function actualizarCarritoUnifiedUI() {
                     ${adicBordeHtml}
                     <p>${formatoMonedaColombiaUnified.format(item.precio)} c/u</p>
                     <div class="item-controles">
-                        <button onclick="window.cambiarCantidadUnified('${item.key}', -1)">-</button>
+                        <button type="button" onclick="window.cambiarCantidadUnified('${item.key}', -1)">-</button>
                         <span style="margin: 0 8px; font-weight: 600;">${item.cantidad}</span>
-                        <button onclick="window.cambiarCantidadUnified('${item.key}', 1)">+</button>
+                        <button type="button" onclick="window.cambiarCantidadUnified('${item.key}', 1)">+</button>
                     </div>
                 </div>
                 <div class="item-subtotal">${formatoMonedaColombiaUnified.format(subtotalItemUnified)}</div>
@@ -380,17 +386,15 @@ function actualizarCarritoUnifiedUI() {
         `;
     }).join('');
 
-    // Cálculo final sumando el domicilio
     let totalCompra = subtotalCompra + costoDomicilio;
 
-    // Actualización visual de los 3 valores
     subtotalElemento.textContent = formatoMonedaColombiaUnified.format(subtotalCompra);
     domicilioElemento.textContent = formatoMonedaColombiaUnified.format(costoDomicilio);
     totalElementoUnified.textContent = formatoMonedaColombiaUnified.format(totalCompra);
     btnBurbujaContador.textContent = cantidadTotalCompra;
     
     spwaValidarFormulario();
-};
+}
 
 const sidebarElemento = document.getElementById('sidebar-carrito');
 window.abrirCarrito = () => sidebarElemento.classList.add('activo');
@@ -408,15 +412,13 @@ const containerTransferencia = document.getElementById('pago-transferencia-conta
 const inputMontoEfectivo = document.getElementById('cliente-monto-efectivo');
 const btnPagarWhatsApp = document.getElementById('btn-pagar');
 
-// --- EVENT LISTENERS ---
-// Lógica para mostrar/ocultar campos de domicilio
+// --- EVENT LISTENERS DE FORMULARIO ---
 selectTipoEntrega.addEventListener('change', (e) => {
     if (e.target.value === 'Recoger') {
         contenedorDomicilio.classList.add('is-hidden');
-        costoDomicilio = 0; // Si recoge, no hay cobro
+        costoDomicilio = 0;
     } else {
         contenedorDomicilio.classList.remove('is-hidden');
-        // Si vuelve a Domicilio, recalcula basado en el barrio si ya había elegido uno
         const opcionSeleccionada = selectBarrioCliente.options[selectBarrioCliente.selectedIndex];
         costoDomicilio = opcionSeleccionada && !opcionSeleccionada.disabled ? (parseInt(opcionSeleccionada.dataset.precio) || 0) : 0;
     }
@@ -442,7 +444,9 @@ selectMetodoPago.addEventListener('change', (e) => {
 });
 
 inputMontoEfectivo.addEventListener('input', spwaValidarFormulario);
+inputMontoEfectivo.addEventListener('change', spwaValidarFormulario);
 inputDireccionCliente.addEventListener('input', spwaValidarFormulario);
+
 inputNombreCliente.addEventListener('input', (e) => {
     e.target.value = e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '');
     spwaValidarFormulario();
@@ -453,17 +457,14 @@ function spwaValidarFormulario() {
     let tipoEntregaValido = selectTipoEntrega.value !== '';
     let carritoLleno = carrito.length > 0;
     
-    // Variables por defecto en true (Para el caso de "Recoger")
     let barrioValido = true;
     let direccionValida = true;
 
-    // Si es a domicilio, forzamos la validación real
     if (selectTipoEntrega.value === 'Domicilio') {
         barrioValido = selectBarrioCliente.value !== '';
         direccionValida = inputDireccionCliente.value.trim() !== '';
     }
 
-    // Calcular el total actual a pagar
     let subtotalActual = carrito.reduce((acc, item) => acc + (item.precio * item.cantidad), 0);
     let totalPagarActual = subtotalActual + costoDomicilio;
 
@@ -476,15 +477,63 @@ function spwaValidarFormulario() {
     }
 
     btnPagarWhatsApp.disabled = !(nombreValido && tipoEntregaValido && barrioValido && direccionValida && carritoLleno && pagoValido);
-};
+}
+
+// =========================================
+// TIQUET DE CONFIRMACIÓN PREVIO A WHATSAPP
+// =========================================
+function spwaPintarTiquetModal() {
+    const contenedor = document.getElementById('tiquet-detalles');
+    const totales = document.getElementById('tiquet-totales');
+    if (!contenedor || !totales) return;
+
+    let subtotal = 0;
+    let htmlProductos = '';
+
+    carrito.forEach(item => {
+        const subtotalItem = item.precio * item.cantidad;
+        subtotal += subtotalItem;
+        
+        htmlProductos += `
+            <div class="tiquet-item">
+                <span><strong>${item.cantidad}x</strong> ${item.nombre}</span>
+                <span>${formatoMonedaColombiaUnified.format(subtotalItem)}</span>
+            </div>
+            <div class="tiquet-item-sub">• Tamaño: ${item.tamano}</div>
+        `;
+        if (item.borde && item.borde !== 'Sin Borde Adicional') {
+            htmlProductos += `<div class="tiquet-item-sub">• Borde: ${item.borde}</div>`;
+        }
+    });
+
+    contenedor.innerHTML = htmlProductos;
+
+    let costoEnvio = (selectTipoEntrega.value === 'Domicilio') ? costoDomicilio : 0;
+    let totalPagar = subtotal + costoEnvio;
+
+    let metodoPagoTexto = selectMetodoPago.value;
+    if (selectMetodoPago.value === 'Efectivo') {
+        const montoIngresado = parseFloat(inputMontoEfectivo.value) || 0;
+        const cambio = montoIngresado - totalPagar;
+        metodoPagoTexto += ` (Paga con: ${formatoMonedaColombiaUnified.format(montoIngresado)} | Cambio: ${cambio >= 0 ? formatoMonedaColombiaUnified.format(cambio) : '$0'})`;
+    }
+
+    totales.innerHTML = `
+        <div class="tiquet-item"><span>Subtotal:</span> <span>${formatoMonedaColombiaUnified.format(subtotal)}</span></div>
+        ${selectTipoEntrega.value === 'Domicilio' ? `<div class="tiquet-item"><span>Domicilio (${selectBarrioCliente.value}):</span> <span>${formatoMonedaColombiaUnified.format(costoEnvio)}</span></div>` : ''}
+        <div class="tiquet-item" style="font-size: 1.05rem; margin-top: 0.3rem;"><strong>TOTAL:</strong> <strong>${formatoMonedaColombiaUnified.format(totalPagar)}</strong></div>
+        <div class="tiquet-linea">---------------------------------</div>
+        <div class="tiquet-item"><span>Cliente:</span> <span>${inputNombreCliente.value.trim()}</span></div>
+        <div class="tiquet-item"><span>Entrega:</span> <span>${selectTipoEntrega.value === 'Recoger' ? 'Recoger en tienda' : 'Domicilio'}</span></div>
+        ${selectTipoEntrega.value === 'Domicilio' ? `<div class="tiquet-item-sub">📍 Dir: ${inputDireccionCliente.value.trim()} (${selectBarrioCliente.value})</div>` : ''}
+        <div class="tiquet-item-sub">💳 Pago: ${metodoPagoTexto}</div>
+    `;
+}
 
 window.enviarWhatsApp = () => {
-    if (btnPagarWhatsApp.disabled) return;
-    
     let subtotal = 0;
     let mensaje = `🍕 *NUEVO PEDIDO - MICHE PIZZA* 🍕\n\n*Cliente:* ${inputNombreCliente.value.trim()}\n`;
 
-    // Adaptar mensaje según entrega
     if (selectTipoEntrega.value === 'Recoger') {
         mensaje += `*Entrega:* 🏪 Pasará a recoger en tienda\n\n`;
     } else {
@@ -503,17 +552,15 @@ window.enviarWhatsApp = () => {
 
     let totalPagar = subtotal + costoDomicilio;
 
-    // Desglose del total en el mensaje
     if (selectTipoEntrega.value === 'Domicilio') {
         mensaje += `\n*Subtotal Pizzas:* ${formatoMonedaColombiaUnified.format(subtotal)}`;
         mensaje += `\n*Domicilio (${selectBarrioCliente.value}):* ${formatoMonedaColombiaUnified.format(costoDomicilio)}`;
     }
     mensaje += `\n*TOTAL A PAGAR: ${formatoMonedaColombiaUnified.format(totalPagar)}*\n`;
     
-    // Anexar detalles del pago
     mensaje += `\n*Método de Pago:* ${selectMetodoPago.value}`;
     if (selectMetodoPago.value === 'Efectivo') {
-        const montoEfectivo = parseFloat(inputMontoEfectivo.value);
+        const montoEfectivo = parseFloat(inputMontoEfectivo.value) || 0;
         const cambio = montoEfectivo - totalPagar;
         mensaje += `\n*Paga con:* ${formatoMonedaColombiaUnified.format(montoEfectivo)}`;
         mensaje += `\n*Cambio a llevar:* ${cambio >= 0 ? formatoMonedaColombiaUnified.format(cambio) : 'Pendiente'}`;
@@ -524,6 +571,48 @@ window.enviarWhatsApp = () => {
     window.open(`https://wa.me/573137416559?text=${encodeURIComponent(mensaje)}`, '_blank');
 };
 
+// --- APERTURA Y CIERRE DEL CARRITO ---
 document.getElementById('btn-carrito-global').addEventListener('click', abrirCarrito);
 document.getElementById('btn-cerrar-carrito').addEventListener('click', cerrarCarrito);
-btnPagarWhatsApp.addEventListener('click', enviarWhatsApp);
+
+// --- INTERCEPTOR PRINCIPAL DEL BOTON (NUEVO CONTROL DINÁMICO) ---
+btnPagarWhatsApp.addEventListener('click', (e) => {
+    e.preventDefault();
+    if (btnPagarWhatsApp.disabled) return;
+    
+    try {
+        // En lugar de usar variables guardadas arriba, buscamos el tiquet dinámicamente en este instante
+        const modal = document.getElementById('modal-tiquet');
+        const btnConfirmar = document.getElementById('btn-tiquet-confirmar');
+        const btnCorregir = document.getElementById('btn-tiquet-corregir');
+
+        // Si falta algo en el HTML, abrimos WhatsApp de una vez
+        if (!modal || !btnConfirmar || !btnCorregir) {
+            console.warn("No se detectó el HTML del Tiquet. Enviando directamente.");
+            window.enviarWhatsApp();
+            return;
+        }
+
+        // Llenar los datos del recibo
+        spwaPintarTiquetModal();
+
+        // Asignar comportamiento a los botones del Tiquet
+        btnCorregir.onclick = function() {
+            modal.classList.add('is-hidden');
+            abrirCarrito();
+        };
+
+        btnConfirmar.onclick = function() {
+            modal.classList.add('is-hidden');
+            window.enviarWhatsApp();
+        };
+
+        // Mostrar Tiquet en pantalla
+        cerrarCarrito();
+        modal.classList.remove('is-hidden');
+
+    } catch (error) {
+        console.error("Fallo inesperado al mostrar tiquet:", error);
+        window.enviarWhatsApp(); // Respaldo máximo de seguridad
+    }
+});
